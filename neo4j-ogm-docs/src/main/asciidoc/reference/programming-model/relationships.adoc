@@ -27,8 +27,14 @@ public class Movie {
 ----
 
 It is also possible to have fields that reference a set of entities (1:N).
-These fields come in two forms, modifiable or read-only. 
-Modifiable fields are of the type `Collection<T>`, and read-only fields are `Iterable<T>`, where T is a type annotated with `@NodeEntity`.
+Neo4j OGM supports the following types of entity collections-
+
+* `java.util.Vector`
+* `java.util.List`, backed by a `java.util.ArrayList`
+* `java.util.SortedSet`, backed by a `java.util.TreeSet`
+* `java.util.Set`, backed by a `java.util.HashSet`
+* Arrays
+
 
 .Node entity with relationships
 [source,java]
@@ -88,6 +94,16 @@ class Person {
 
 This will work just fine, however, please be aware that this is only because the end node types (Car and Pet) are different types.
 If you wanted a person to own two cars, for example, then you'd have to use a `Collection` of cars or use differently-named relationship types.
+
+== Ambiguity in relationships
+
+In cases where the relationship mappings could be ambiguous, the recommendation is that
+
+* the objects be navigable in both directions and
+* the @Relationship annotations are explicit. This means if the entity has setter methods, they must be annotated
+
+Examples of ambiguous relationship mappings are multiple relationship types that resolve to the same types of entities, in a given direction, but whose domain objects are not navigable in both directions.
+
 
 == @RelationshipEntity: Rich relationships
 

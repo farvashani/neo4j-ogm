@@ -61,11 +61,15 @@ public class MethodWriter extends EntityAccess {
     public void write(Object instance, Object value) {
         if (setterMethodInfo.hasConverter()) {
             value = setterMethodInfo.converter().toEntityAttribute(value);
+            MethodWriter.write(method, instance, value);
         }
-
-        String descriptor = setterMethodInfo.getTypeParameterDescriptor() == null ? setterMethodInfo.getDescriptor() : setterMethodInfo.getTypeParameterDescriptor();
-        value = Utils.coerceTypes(ClassUtils.getType(descriptor), value);
-        MethodWriter.write(method, instance, value);
+        else {
+            if (setterMethodInfo.isScalar()) {
+                String descriptor = setterMethodInfo.getTypeParameterDescriptor() == null ? setterMethodInfo.getDescriptor() : setterMethodInfo.getTypeParameterDescriptor();
+                value = Utils.coerceTypes(ClassUtils.getType(descriptor), value);
+            }
+            MethodWriter.write(method, instance, value);
+        }
     }
 
     @Override

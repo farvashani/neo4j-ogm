@@ -15,6 +15,7 @@
 package org.neo4j.ogm.session.response;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.neo4j.ogm.session.result.CypherException;
 import org.neo4j.ogm.session.result.ResultProcessingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -149,9 +150,16 @@ public class JsonResponse implements Neo4jResponse<String> {
             cp = header.indexOf(COMMIT_ERRORS_TOKEN);
         }
         if (cp == -1) {
-            throw new RuntimeException("Unexpected problem! Cypher response starts: " + header + "...");
+            throw new ResultProcessingException("Unexpected problem! Cypher response starts: " + header + "...", null);
         }
-
+        if (header.indexOf("code") > 0 && header.indexOf("message") > 0) {
+            String code = header.substring(header.indexOf("code") + 7, header.indexOf("message")-3);
+            String message = "";
+            if (header.lastIndexOf("}]}") > 0) {
+                message = header.substring(header.indexOf("message") + 10,header.lastIndexOf("}]}")-1);
+            }
+            throw new CypherException("Error executing Cypher statement", null, code, message);
+        }
         StringBuilder sb = new StringBuilder(header);
         String response;
         try {
@@ -161,8 +169,7 @@ public class JsonResponse implements Neo4jResponse<String> {
         } catch (Exception e) {
             scanner.close();
         }
-
-        throw new ResultProcessingException(sb.substring(cp + 2), null);
+        throw new ResultProcessingException(sb.substring( cp + 2 ), null);
     }
 
     private String extractToken(ResponseRecord format) {
